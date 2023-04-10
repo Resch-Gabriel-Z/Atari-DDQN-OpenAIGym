@@ -8,6 +8,7 @@ import torch.optim as optim
 
 import os
 
+
 from Agent import Agent
 from Neural_Network import DQN
 from Atari_Preprocessing import Atari_wrapper
@@ -16,7 +17,6 @@ from Replay_Memory import ReplayMemory
 
 # A function to load a model if existing
 def load_model_dict(path,name,**kwargs):
-    # TODO: define the kwargs and load model (currently network state dicts, starting point, optimizer_dict, total steps)
     policy_net_load = kwargs['policy_state_dict']
     online_net_load = kwargs['online_state_dict']
     start_load = kwargs['start']
@@ -25,17 +25,30 @@ def load_model_dict(path,name,**kwargs):
 
     if os.path.exists(path+'/'+name):
         checkpoint = torch.load(path+'/'+name)
-    pass
+
+        policy_net_load.load_state_dict(checkpoint['policy_state_dict'])
+        online_net_load.load_state_dict(checkpoint['online_state_dict'])
+        start_load = checkpoint['start'] + 1
+        optimizer_load.load_state_dict(checkpoint['optimizer_state_dict'])
+        total_steps_load = checkpoint['total_steps']
+
 
 # A function to save a model
 def save_model_dict(path,name, **kwargs):
-    # TODO: as above
     policy_net_save = kwargs['policy_state_dict']
     online_net_save = kwargs['online_state_dict']
     start_save = kwargs['start']
     optimizer_save = kwargs['optimizer_state_dict']
     total_steps_save = kwargs['total_steps']
-    pass
+
+    torch.save({
+        'policy_state_dict' : policy_net_save.state_dict(),
+        'online_state_dict' : online_net_save.state_dict(),
+        'optimizer_state_dict': optimizer_save.state_dict(),
+        'start': start_save,
+        'total_steps': total_steps_save
+    },path+'/'+name)
+
 
 # A function to create and preprocess the Environment
 def environment_maker(game):
@@ -79,3 +92,4 @@ loss_function = nn.MSELoss()
 
 # Initialize Memory
 memory = ReplayMemory(hyperparameters['replay_buffer_size'])
+

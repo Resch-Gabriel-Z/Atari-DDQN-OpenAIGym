@@ -1,7 +1,7 @@
 from Neural_Network import DQN
 import numpy as np
 
-# act (in traiing meaning it uses an epsilon that will be decayed),
+# act (in training meaning it uses an epsilon that will be decayed),
 # act (in evaluation meaning that it will always use the best move or has a fixed epsilon),
 
 
