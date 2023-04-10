@@ -15,7 +15,7 @@ from Atari_Preprocessing import Atari_wrapper
 from Hyperparameters import hyperparameters
 from Replay_Memory import ReplayMemory
 
-# A function to load a model if existing
+# A function to load a model if existing.
 def load_model_dict(path,name,**kwargs):
     policy_net_load = kwargs['policy_state_dict']
     online_net_load = kwargs['online_state_dict']
