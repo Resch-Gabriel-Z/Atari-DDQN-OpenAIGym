@@ -1,5 +1,5 @@
-from collections import namedtuple,deque
 import random
+from collections import namedtuple, deque
 
 Memory = namedtuple('Memory', ('state', 'action', 'done', 'next_state', 'reward'))
 
