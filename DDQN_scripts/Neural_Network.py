@@ -23,7 +23,7 @@ class DQN(nn.Module):
             nn.Linear(in_features=512,out_features=num_actions),
         )
     def forward(self,x):
-        x = torch.tensor(x,dtype=torch.float32)
+        x = torch.as_tensor(x,dtype=torch.float32)
         conv_layers = self.conv(x)
         fc_input = self.flatten(conv_layers)
         fc_input = fc_input.view(-1,64*7*7)

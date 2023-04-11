@@ -1,20 +1,19 @@
-# TODO: create some variables for logging and such
-import random
-
 import gym
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
+import numpy as np
 import os
-
+from tqdm import tqdm
 
 from Agent import Agent
 from Neural_Network import DQN
 from Atari_Preprocessing import Atari_wrapper
 from Hyperparameters import hyperparameters
 from Replay_Memory import ReplayMemory,Memory
+
 
 # A function to load a model if existing.
 def load_model_dict(path,name,**kwargs):
@@ -26,7 +25,7 @@ def load_model_dict(path,name,**kwargs):
 
     if os.path.exists(path+'/'+name):
         print('Save File Found!')
-        checkpoint = torch.load(path+'/'+name)
+        checkpoint = torch.load(path + '/' + name)
 
         policy_net_load.load_state_dict(checkpoint['policy_state_dict'])
         online_net_load.load_state_dict(checkpoint['online_state_dict'])
@@ -50,8 +49,8 @@ def save_model_dict(path,name, **kwargs):
         'online_state_dict' : online_net_save.state_dict(),
         'optimizer_state_dict': optimizer_save.state_dict(),
         'start': start_save,
-        'total_steps': total_steps_save
-    },path+'/'+name)
+        'total_steps': total_steps_save,
+    }, path + '/' + name)
 
 
 # A function to create and preprocess the Environment
@@ -70,7 +69,6 @@ def Agent_learning(batch_size,gamma,**kwargs):
 
     if len(memory_l) < 1000:
         return
-
     sample_memory = memory_l.sample(batch_size)
     sample_memory_preprocessed = Memory(*zip(*sample_memory))
 
@@ -79,7 +77,7 @@ def Agent_learning(batch_size,gamma,**kwargs):
     sample_rewards = torch.tensor(sample_memory_preprocessed.reward,dtype=torch.float32)
     sample_dones = torch.tensor(sample_memory_preprocessed.done,dtype=torch.float32)
     sample_states = torch.stack(sample_memory_preprocessed.state)
-    sample_next_states = torch.tensor(sample_memory_preprocessed.next_state,dtype=torch.float32).unsqueeze(1)
+    sample_next_states = torch.tensor(np.array(sample_memory_preprocessed.next_state),dtype=torch.float32).unsqueeze(1)
 
 
     # compute the target & q values
@@ -90,7 +88,7 @@ def Agent_learning(batch_size,gamma,**kwargs):
     actions_q_values = torch.gather(q_values,dim=1,index=sample_actions)
 
     # compute loss and backpropagate
-    loss = loss_func_l(target,actions_q_values)
+    loss = loss_func_l(target.unsqueeze(1),actions_q_values)
     optimizer_l.zero_grad()
     loss.backward()
     optimizer_l.step()
@@ -123,11 +121,11 @@ if 'start' not in locals():
 if 'total_steps' not in locals():
     total_steps = 0
 
-name = 'Breakout-v5_0.0.tar'
+name = 'Breakout-v5_0_0.tar'
 
-load_model_dict('~/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name,policy_state_dict=agent.policy_net.state_dict(),online_state_dict=online_net.state_dict(),optimizer_state_dict=optimizer.state_dict(),start=start,total_steps=total_steps)
+load_model_dict(path='/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name=name,policy_state_dict=agent.policy_net,online_state_dict=online_net,optimizer_state_dict=optimizer,start=start,total_steps=total_steps)
 
-for episode in range(start,hyperparameters['number_of_episodes']):
+for episode in tqdm(range(start,hyperparameters['number_of_episodes'])):
     state, _ = env.reset()
 
     for step in range(hyperparameters['max_steps_per_episode']):
@@ -148,10 +146,13 @@ for episode in range(start,hyperparameters['number_of_episodes']):
         if total_steps % hyperparameters['target_update_freq'] == 0:
             online_net.load_state_dict(agent.policy_net.state_dict())
 
-        #save_model_dict('~/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name,policy_state_dict=agent.policy_net,online_state_dict=online_net,optimizer_state_dict=optimizer,start=start,total_steps=total_steps)
+        save_model_dict(path='/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name=name,policy_state_dict=agent.policy_net,online_state_dict=online_net,optimizer_state_dict=optimizer,start=start,total_steps=total_steps)
 
     if episode % (hyperparameters['number_of_episodes']/10000) == 0:
-        print(f'{"~"*40}\n'
-              f'Episode: {episode}\n'
+        print(f'\n'
+              f'{"~"*40}\n'
+              f'Episode: {episode+1}\n'
               f'reward: {reward}\n'
-              f'info: {others}')
+              f'total steps done: {total_steps}\n'
+              f'info: {others}\n'
+              f'{"~"*40}')
