@@ -22,18 +22,22 @@ def load_model_dict(path,name,**kwargs):
     optimizer_load = kwargs['optimizer_state_dict']
     start_load = kwargs['start']
     total_steps_load = kwargs['total_steps']
+    memory_load = kwargs['memory_savestate']
 
-    if os.path.exists(path+'/'+name):
+    if os.path.exists(path+'/'+name + '.pth'):
         print('Save File Found!')
-        checkpoint = torch.load(path + '/' + name)
+        checkpoint = torch.load(path + '/' + name + '.pth')
 
         policy_net_load.load_state_dict(checkpoint['policy_state_dict'])
         online_net_load.load_state_dict(checkpoint['online_state_dict'])
         start_load = checkpoint['start'] + 1
         optimizer_load.load_state_dict(checkpoint['optimizer_state_dict'])
         total_steps_load = checkpoint['total_steps']
+        memory_load = checkpoint['memory_savestate']
     else:
         print('No Save File Found. Beginn new training')
+
+    return start_load, total_steps_load, memory_load
 
 
 # A function to save a model
@@ -43,6 +47,7 @@ def save_model_dict(path,name, **kwargs):
     optimizer_save = kwargs['optimizer_state_dict']
     start_save = kwargs['start']
     total_steps_save = kwargs['total_steps']
+    memory_save = kwargs['memory_savestate']
 
     torch.save({
         'policy_state_dict' : policy_net_save.state_dict(),
@@ -50,7 +55,8 @@ def save_model_dict(path,name, **kwargs):
         'optimizer_state_dict': optimizer_save.state_dict(),
         'start': start_save,
         'total_steps': total_steps_save,
-    }, path + '/' + name)
+        'memory_savestate': memory_save,
+    }, path + '/' + name+ '.pth')
 
 
 # A function to create and preprocess the Environment
@@ -121,9 +127,9 @@ if 'start' not in locals():
 if 'total_steps' not in locals():
     total_steps = 0
 
-name = 'Breakout-v5_0_0.tar'
+name = 'Breakout-v5_0_0'
 
-load_model_dict(path='/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name=name,policy_state_dict=agent.policy_net,online_state_dict=online_net,optimizer_state_dict=optimizer,start=start,total_steps=total_steps)
+start, total_steps, memory = load_model_dict(path='/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name=name,policy_state_dict=agent.policy_net,online_state_dict=online_net,optimizer_state_dict=optimizer,start=start,total_steps=total_steps,memory_savestate=memory)
 
 for episode in tqdm(range(start,hyperparameters['number_of_episodes'])):
     state, _ = env.reset()
@@ -146,7 +152,7 @@ for episode in tqdm(range(start,hyperparameters['number_of_episodes'])):
         if total_steps % hyperparameters['target_update_freq'] == 0:
             online_net.load_state_dict(agent.policy_net.state_dict())
 
-        save_model_dict(path='/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name=name,policy_state_dict=agent.policy_net,online_state_dict=online_net,optimizer_state_dict=optimizer,start=start,total_steps=total_steps)
+    save_model_dict(path='/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name=name,policy_state_dict=agent.policy_net,online_state_dict=online_net,optimizer_state_dict=optimizer,start=episode,total_steps=total_steps,memory_savestate=memory)
 
     if episode % (hyperparameters['number_of_episodes']/10000) == 0:
         print(f'\n'
@@ -155,4 +161,5 @@ for episode in tqdm(range(start,hyperparameters['number_of_episodes'])):
               f'reward: {reward}\n'
               f'total steps done: {total_steps}\n'
               f'info: {others}\n'
+              f'memory size: {len(memory)}\n'
               f'{"~"*40}')
