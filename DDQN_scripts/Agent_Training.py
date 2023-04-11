@@ -25,6 +25,7 @@ def load_model_dict(path,name,**kwargs):
     total_steps_load = kwargs['total_steps']
 
     if os.path.exists(path+'/'+name):
+        print('Save File Found!')
         checkpoint = torch.load(path+'/'+name)
 
         policy_net_load.load_state_dict(checkpoint['policy_state_dict'])
@@ -32,6 +33,8 @@ def load_model_dict(path,name,**kwargs):
         start_load = checkpoint['start'] + 1
         optimizer_load.load_state_dict(checkpoint['optimizer_state_dict'])
         total_steps_load = checkpoint['total_steps']
+    else:
+        print('No Save File Found. Beginn new training')
 
 
 # A function to save a model
@@ -100,7 +103,7 @@ agent_hyperparameters = [hyperparameters['initial_eps'],hyperparameters['final_e
 env = environment_maker("ALE/Breakout-v5")
 
 # Create the Agent and the online Network
-agent = Agent(*agent_hyperparameters, env.observation_space.shape, env.action_space.shape)
+agent = Agent(*agent_hyperparameters, 1, env.action_space.n)
 online_net = DQN(env.observation_space.shape,env.action_space.shape)
 
 # Initialize the weights of the online net with the policy nets weights
@@ -140,3 +143,9 @@ for episode in range(start,hyperparameters['number_of_episodes']):
             online_net.load_state_dict(agent.policy_net.state_dict())
 
         save_model_dict('~/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name,policy_state_dict=agent.policy_net.state_dict(),online_state_dict=online_net.state_dict(),optimizer_state_dict=optimizer.state_dict(),start=start,total_steps=total_steps)
+
+    if episode % (hyperparameters['number_of_episodes']/1000) == 0:
+        print(f'{"~"*40}\n'
+              f'Episode: {episode}\n'
+              f'reward: {reward}\n'
+              f'info: {others}')
