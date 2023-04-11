@@ -1,13 +1,7 @@
-import gym.core
-
 from Neural_Network import DQN
 import numpy as np
 import torch
 import random
-
-# act (in training meaning it uses an epsilon that will be decayed),
-# act (in evaluation meaning that it will always use the best move or has a fixed epsilon),
-
 
 
 class Agent():
@@ -27,9 +21,6 @@ class Agent():
 
     # define act method
     def act(self, state):
-        # TODO (act): transform as tensor
-        # TODO (act): manipulate tensor in desired shape/size
-        # TODO (act): get max element of tensor (q_value) and return it (probably as .item())
 
         if random.uniform(0,1) < self.epsilon:
             action = state.action_space.sample()

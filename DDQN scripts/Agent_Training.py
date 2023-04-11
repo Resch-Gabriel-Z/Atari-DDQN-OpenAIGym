@@ -20,8 +20,8 @@ from Replay_Memory import ReplayMemory,Memory
 def load_model_dict(path,name,**kwargs):
     policy_net_load = kwargs['policy_state_dict']
     online_net_load = kwargs['online_state_dict']
-    start_load = kwargs['start']
     optimizer_load = kwargs['optimizer_state_dict']
+    start_load = kwargs['start']
     total_steps_load = kwargs['total_steps']
 
     if os.path.exists(path+'/'+name):
@@ -38,8 +38,8 @@ def load_model_dict(path,name,**kwargs):
 def save_model_dict(path,name, **kwargs):
     policy_net_save = kwargs['policy_state_dict']
     online_net_save = kwargs['online_state_dict']
-    start_save = kwargs['start']
     optimizer_save = kwargs['optimizer_state_dict']
+    start_save = kwargs['start']
     total_steps_save = kwargs['total_steps']
 
     torch.save({
@@ -113,3 +113,30 @@ loss_function = nn.MSELoss()
 # Initialize Memory
 memory = ReplayMemory(hyperparameters['replay_buffer_size'])
 
+if 'start' not in locals():
+    start = 0
+
+if 'total_steps' not in locals():
+    total_steps = 0
+
+name = 'Breakout-v5_0.0'
+
+load_model_dict('~/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name,policy_state_dict=agent.policy_net.state_dict(),online_state_dict=online_net.state_dict(),optimizer_state_dict=optimizer.state_dict(),start=start,total_steps=total_steps)
+
+for episode in range(start,hyperparameters['number_of_episodes']):
+    state, _ = env.reset()
+
+    for step in range(hyperparameters['max_steps_per_episode']):
+        action = agent.act(state)
+        total_steps += 1
+        agent.exploration_decay(total_steps=total_steps)
+
+        new_state, reward, done, *others = agent.policy_net(state)
+        memory.push(state,action,done,new_state,reward)
+
+        Agent_learning(hyperparameters['batch_size'],hyperparameters['gamma'],memory=memory,agent=agent,online_network=online_net,loss_function=loss_function,optimizer=optimizer)
+
+        if total_steps % hyperparameters['target_update_freq'] == 0:
+            online_net.load_state_dict(agent.policy_net.state_dict())
+
+        save_model_dict('~/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts',name,policy_state_dict=agent.policy_net.state_dict(),online_state_dict=online_net.state_dict(),optimizer_state_dict=optimizer.state_dict(),start=start,total_steps=total_steps)
