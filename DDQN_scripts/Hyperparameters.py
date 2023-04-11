@@ -8,5 +8,5 @@ hyperparameters = {
     'batch_size': 32,
     'target_update_freq': 10000,
     'number_of_episodes': 10000,
-    'max_steps_per_episode': 5000,
+    'max_steps_per_episode': 500,
 }
