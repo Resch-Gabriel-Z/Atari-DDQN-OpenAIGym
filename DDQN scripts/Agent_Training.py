@@ -1,4 +1,5 @@
 # TODO: create some variables for logging and such
+import random
 
 import gym
 
@@ -13,7 +14,7 @@ from Agent import Agent
 from Neural_Network import DQN
 from Atari_Preprocessing import Atari_wrapper
 from Hyperparameters import hyperparameters
-from Replay_Memory import ReplayMemory
+from Replay_Memory import ReplayMemory,Memory
 
 # A function to load a model if existing.
 def load_model_dict(path,name,**kwargs):
@@ -67,10 +68,29 @@ def Agent_learning(batch_size,gamma,**kwargs):
     if len(memory_l) < 1000:
         return
 
-    # TODO: get the information from the memory in tensors of shape (batch_size,in_channels)
-    # TODO: compute targets with the online network and the formula given in paper
-    # TODO: compute loss and optimize policy network
-    pass
+    sample_memory = random.sample(memory_l)
+    sample_memory_preprocessed = Memory(*zip(*sample_memory))
+
+    # Get each field of the memory sample
+    sample_actions = torch.tensor(sample_memory_preprocessed.action)
+    sample_rewards = torch.tensor(sample_memory_preprocessed.reward)
+    sample_dones = torch.tensor(sample_memory_preprocessed.done)
+    sample_states = torch.tensor(sample_memory_preprocessed.state)
+    sample_next_states = torch.tensor(sample_memory_preprocessed.next_state)
+
+    # compute the target & q values
+    max_q_values_online, _ = torch.max(online_l(sample_next_states),dim=1)
+    target = sample_rewards + hyperparameters['gamma'] * max_q_values_online * (1-sample_dones)
+
+    q_values = agent_l.policy_net(sample_states)
+    actions_q_values = torch.gather(q_values,1,sample_actions)
+
+    # compute loss and backpropagate
+    loss = loss_func_l(target,actions_q_values)
+    optimizer_l.zero_grad()
+    loss.backward()
+    optimizer_l.step()
+
 
 # Hyperparameters
 agent_hyperparameters = [hyperparameters['initial_eps'],hyperparameters['final_eps'],hyperparameters['eps_decay_steps']]
