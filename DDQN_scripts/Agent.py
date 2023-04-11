@@ -20,15 +20,15 @@ class Agent():
         self.policy_net = DQN(self.in_channels,self.num_actions)
 
     # define act method
-    def act(self, state):
+    def act(self, state,env):
 
         if random.uniform(0,1) < self.epsilon:
-            action = state.action_space.sample()
+            action = env.action_space.sample()
         else:
             action = torch.argmax(self.policy_net(state))
 
-        new_state, reward, done, *others = state.step(action)
-        return new_state,reward,done,others
+        new_state, reward, done, *others = env.step(action)
+        return action,new_state,reward,done,others
 
     # set exploration rate
     def exploration_decay(self, total_steps):
