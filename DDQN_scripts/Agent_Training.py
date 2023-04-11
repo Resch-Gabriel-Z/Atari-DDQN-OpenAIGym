@@ -104,7 +104,11 @@ agent_hyperparameters = [hyperparameters['initial_eps'], hyperparameters['final_
                          hyperparameters['eps_decay_steps']]
 
 # Create the environment
-env = environment_maker("ALE/Breakout-v5")
+env = environment_maker('ALE/Pong-v5')
+
+# Create the meta data
+name = 'Pong'
+path_to_model_save = '/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts'
 
 # Create the Agent and the online Network
 agent = Agent(*agent_hyperparameters, 1, env.action_space.n)
@@ -126,8 +130,6 @@ if 'start' not in locals():
 if 'total_steps' not in locals():
     total_steps = 0
 
-name = 'Breakout-v5_0_0'
-path_to_model_save = '/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts'
 
 start, total_steps, memory = load_model_dict(path=path_to_model_save, name=name, policy_state_dict=agent.policy_net,
                                              online_state_dict=online_net, optimizer_state_dict=optimizer, start=start,

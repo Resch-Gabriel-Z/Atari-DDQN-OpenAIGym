@@ -1,0 +1,59 @@
+# Assault
+env = 'ALE/Assault-v5'
+name = 'Assault'
+
+# Atlantis
+env = 'ALE/Atlantis-v5'
+name = 'Atlantis'
+
+# Boxing
+env = 'ALE/Boxing-v5'
+name = 'Boxing'
+
+# Breakout
+env = 'ALE/Breakout-v5'
+name = 'Breakout'
+
+# Crazy Climber
+env = 'CrazyClimber-v5'
+name = 'Crazy_Climber'
+
+# Demon Attack
+env = 'ALE/DemonAttack-v5'
+name = 'Demon_Attack'
+
+# Double Dunk
+env = 'ALE/DoubleDunk-v5'
+name = 'Double_Dunk'
+
+# Gopher
+env = 'ALE/Gopher-v5'
+name = 'Gopher'
+
+# Krull
+env = 'ALE/Krull-v5'
+name = 'Krull'
+
+# Pong
+env = 'ALE/Pong-v5'
+name = 'Pong'
+
+# Pinball
+env = 'ALE/VideoPinball-v5'
+name = 'Video_Pinball'
+
+# Road Runner
+env = 'ALE/RoadRunner-v0'
+name = 'Road_Runner'
+
+# Robot Tank
+env = 'ALE/Robotank-v0'
+name = 'Robot_Tank'
+
+# Space Invaders
+env = 'ALE/SpaceInvaders-v5'
+name = 'Space_Invaders'
+
+# Star Gunner
+env = 'ALE/StarGunner-v5'
+name = 'Star_Gunner'
