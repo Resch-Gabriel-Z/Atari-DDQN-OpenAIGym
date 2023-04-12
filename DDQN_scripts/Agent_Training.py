@@ -51,36 +51,47 @@ if 'start' not in locals():
 if 'total_steps' not in locals():
     total_steps = 0
 
+# Load the model
 start, total_steps, memory = load_model_dict(path=path_to_model_save, name=name, policy_state_dict=agent.policy_net,
                                              online_state_dict=online_net, optimizer_state_dict=optimizer, start=start,
                                              total_steps=total_steps, memory_savestate=memory)
 
+# Train the Agent for a number of episodes
 for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
+    # First reset the environment
     state, _ = env.reset()
 
+    # Then for each step, follow the Pseudocode in the paper
     for step in range(hyperparameters['max_steps_per_episode']):
         state = torch.tensor(state).unsqueeze(0)
         action, new_state, reward, done, *others = agent.act(state, env)
         total_steps += 1
         agent.exploration_decay(total_steps=total_steps)
 
+        # Push the memory
         memory.push(state, action, done, new_state, reward)
 
+        # Update the state
         state = new_state
 
+        # Agent Learning
         Agent_learning(hyperparameters['batch_size'], hyperparameters['gamma'], memory=memory, agent=agent,
                        online_network=online_net, loss_function=loss_function, optimizer=optimizer)
 
+        # If a condition arises which makes playing further impossible (such as losing all lives) go to new episode
         if done:
             break
 
+        # Update the online Network
         if total_steps % hyperparameters['target_update_freq'] == 0:
             online_net.load_state_dict(agent.policy_net.state_dict())
 
+    # Save the Model
     save_model_dict(path=path_to_model_save, name=name, policy_state_dict=agent.policy_net,
                     online_state_dict=online_net, optimizer_state_dict=optimizer, start=episode,
                     total_steps=total_steps, memory_savestate=memory)
 
+    # Print out useful information during Training
     if episode % (hyperparameters['number_of_episodes'] / 10000) == 0:
         print(f'\n'
               f'{"~" * 40}\n'

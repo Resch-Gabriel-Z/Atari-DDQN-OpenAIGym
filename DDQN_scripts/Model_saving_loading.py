@@ -1,5 +1,7 @@
 import os
+
 import torch
+
 
 def load_model_dict(path, name, **kwargs):
     policy_net_load = kwargs['policy_state_dict']
@@ -9,6 +11,7 @@ def load_model_dict(path, name, **kwargs):
     total_steps_load = kwargs['total_steps']
     memory_load = kwargs['memory_savestate']
 
+    # Basic function to look for a file and then loads it variables taken from a dict
     if os.path.exists(path + '/' + name + '.pth'):
         print('Save File Found!')
         checkpoint = torch.load(path + '/' + name + '.pth')
@@ -33,6 +36,7 @@ def save_model_dict(path, name, **kwargs):
     total_steps_save = kwargs['total_steps']
     memory_save = kwargs['memory_savestate']
 
+    # Basic torch function that saves variables as a dict to load them afterward
     torch.save({
         'policy_state_dict': policy_net_save.state_dict(),
         'online_state_dict': online_net_save.state_dict(),
@@ -41,3 +45,9 @@ def save_model_dict(path, name, **kwargs):
         'total_steps': total_steps_save,
         'memory_savestate': memory_save,
     }, path + '/' + name + '.pth')
+
+
+# Saving a model after training is completed (only the policy state dict to load it into the Agent)
+def save_final_model(path, name, **kwargs):
+    final_policy = kwargs['policy_state_dict']
+    torch.save({'policy_state_dict': final_policy.state_dict()}, path + '/' + name + '.pth')

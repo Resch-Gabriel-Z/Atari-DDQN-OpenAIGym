@@ -1,3 +1,4 @@
+# Parameters are took from the Paper
 hyperparameters = {
     'replay_buffer_size': int(1e6),
     'initial_eps': 1.0,

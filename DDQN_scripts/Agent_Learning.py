@@ -1,6 +1,8 @@
-import torch
-from Replay_Memory import Memory
 import numpy as np
+import torch
+
+from Replay_Memory import Memory
+
 
 def Agent_learning(batch_size, gamma, **kwargs):
     memory_l = kwargs['memory']
@@ -9,8 +11,10 @@ def Agent_learning(batch_size, gamma, **kwargs):
     optimizer_l = kwargs['optimizer']
     loss_func_l = kwargs['loss_function']
 
+    # Learn only if the memory has enough experience to learn from
     if len(memory_l) < 1000:
         return
+    # Sample the memory
     sample_memory = memory_l.sample(batch_size)
     sample_memory_preprocessed = Memory(*zip(*sample_memory))
 

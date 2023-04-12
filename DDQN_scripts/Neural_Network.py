@@ -25,7 +25,9 @@ class DQN(nn.Module):
         )
 
     def forward(self, x):
+        # Making sure the input is a tensor as we desire
         x = torch.as_tensor(x, dtype=torch.float32)
+        # Process
         conv_layers = self.conv(x)
         fc_input = self.flatten(conv_layers)
         fc_input = fc_input.view(-1, 64 * 7 * 7)
