@@ -17,12 +17,12 @@ if os.path.exists(path + '/' + name):
         torch.load(path + '/' + name)['policy_state_dict'])
     agent.policy_net.eval()
 
-# Test the final model
-state, _ = env.reset()
-while True:
-    state = torch.as_tensor(state).unsqueeze(0)
-    action, new_state, reward, done, *others = agent.act(state, env)
-    state = new_state
+    # Test the final model
+    state, _ = env.reset()
+    while True:
+        state = torch.as_tensor(state).unsqueeze(0)
+        action, new_state, reward, done, *others = agent.act(state, env)
+        state = new_state
 
-    if done:
-        state, _ = env.reset()
+        if done:
+            state, _ = env.reset()
