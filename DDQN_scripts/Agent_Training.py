@@ -1,3 +1,4 @@
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -16,7 +17,7 @@ agent_hyperparameters = [hyperparameters['initial_eps'], hyperparameters['final_
                          hyperparameters['eps_decay_steps']]
 
 # Create the environment
-env = environment_maker('ALE/Breakout-v5')
+env = environment_maker('-')
 
 # Create the meta data
 game_name = '-'
@@ -36,22 +37,25 @@ loss_function = nn.MSELoss()
 # Initialize Memory
 memory = ReplayMemory(hyperparameters['replay_buffer_size'])
 
-if 'start' not in locals():
-    start = 0
-
-if 'total_steps' not in locals():
-    total_steps = 0
+# Initialize starting variables to override
+start = 0
+total_steps = 0
+episode_reward_tracker = []
 
 # Load the model
-start, total_steps, memory = load_model_dict(path=path_to_model_save, name=game_name,
-                                             policy_state_dict=agent.policy_net, online_state_dict=online_net,
-                                             optimizer_state_dict=optimizer, start=start, total_steps=total_steps,
-                                             memory_savestate=memory)
+start, total_steps, memory, episode_reward_tracker = load_model_dict(path=path_to_model_save, name=game_name,
+                                                                     policy_state_dict=agent.policy_net,
+                                                                     online_state_dict=online_net,
+                                                                     optimizer_state_dict=optimizer, start=start,
+                                                                     total_steps=total_steps,
+                                                                     memory_savestate=memory,
+                                                                     episode_reward_tracker=episode_reward_tracker)
 
 # Train the Agent for a number of episodes
 for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
-    # First reset the environment
+    # First reset the environment and the cumulative reward
     state, _ = env.reset()
+    reward_for_episode = 0
 
     # Then for each step, follow the Pseudocode in the paper
     for step in range(hyperparameters['max_steps_per_episode']):
@@ -66,6 +70,9 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
         # Update the state
         state = new_state
 
+        # add the reward to the cumulative reward
+        reward_for_episode += reward
+
         # Agent Learning
         agent_learning(hyperparameters['batch_size'], hyperparameters['gamma'], memory=memory, agent=agent,
                        online_network=online_net, loss_function=loss_function, optimizer=optimizer)
@@ -78,19 +85,21 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
         if total_steps % hyperparameters['target_update_freq'] == 0:
             online_net.load_state_dict(agent.policy_net.state_dict())
 
+    # Update the tracker
+    episode_reward_tracker.append(reward_for_episode)
+
     # Save the Model
     save_model_dict(path=path_to_model_save, name=game_name, policy_state_dict=agent.policy_net,
                     online_state_dict=online_net, optimizer_state_dict=optimizer, start=episode,
-                    total_steps=total_steps, memory_savestate=memory)
+                    total_steps=total_steps, memory_savestate=memory, episode_reward_tracker=episode_reward_tracker)
 
     # Print out useful information during Training
     if episode % (hyperparameters['number_of_episodes'] / 10000) == 0:
         print(f'\n'
               f'{"~" * 40}\n'
               f'Episode: {episode + 1}\n'
-              f'reward: {reward}\n'
+              f'reward for episode: {reward_for_episode}\n'
               f'total steps done: {total_steps}\n'
-              f'info: {others}\n'
               f'memory size: {len(memory)}\n'
               f'{"~" * 40}')
 
@@ -98,3 +107,5 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
 name_final_model = game_name + '_final'
 path_to_final_model = '-'
 save_final_model(name=name_final_model, path=path_to_final_model, policy_state_dict=agent.policy_net)
+df = pd.DataFrame({'cumulative rewards': episode_reward_tracker})
+df.to_csv('-')

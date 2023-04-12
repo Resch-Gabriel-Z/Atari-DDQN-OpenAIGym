@@ -10,6 +10,7 @@ def load_model_dict(path, name, **kwargs):
     start_load = kwargs['start']
     total_steps_load = kwargs['total_steps']
     memory_load = kwargs['memory_savestate']
+    episode_reward_tracker_load = kwargs['episode_reward_tracker']
 
     # Basic function to look for a file and then loads it variables taken from a dict
     if os.path.exists(path + '/' + name + '.pth'):
@@ -22,10 +23,11 @@ def load_model_dict(path, name, **kwargs):
         optimizer_load.load_state_dict(checkpoint['optimizer_state_dict'])
         total_steps_load = checkpoint['total_steps']
         memory_load = checkpoint['memory_savestate']
+        episode_reward_tracker_load = checkpoint['episode_reward_tracker']
     else:
         print('No Save File Found. Begin new training')
 
-    return start_load, total_steps_load, memory_load
+    return start_load, total_steps_load, memory_load, episode_reward_tracker_load
 
 
 def save_model_dict(path, name, **kwargs):
@@ -35,6 +37,7 @@ def save_model_dict(path, name, **kwargs):
     start_save = kwargs['start']
     total_steps_save = kwargs['total_steps']
     memory_save = kwargs['memory_savestate']
+    episode_reward_tracker_save = kwargs['episode_reward_tracker']
 
     # Basic torch function that saves variables as a dict to load them afterward
     torch.save({
@@ -44,6 +47,7 @@ def save_model_dict(path, name, **kwargs):
         'start': start_save,
         'total_steps': total_steps_save,
         'memory_savestate': memory_save,
+        'episode_reward_tracker': episode_reward_tracker_save,
     }, path + '/' + name + '.pth')
 
 
