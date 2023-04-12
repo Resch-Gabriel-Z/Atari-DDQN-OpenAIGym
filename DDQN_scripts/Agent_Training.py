@@ -1,61 +1,16 @@
-import os
-
 import gym
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 
 from Agent import Agent
+from Agent_Learning import Agent_learning
 from Atari_Preprocessing import Atari_wrapper
 from Hyperparameters import hyperparameters
+from Model_saving_loading import load_model_dict, save_model_dict
 from Neural_Network import DQN
-from Replay_Memory import ReplayMemory, Memory
-
-
-# A function to load a model if existing.
-def load_model_dict(path, name, **kwargs):
-    policy_net_load = kwargs['policy_state_dict']
-    online_net_load = kwargs['online_state_dict']
-    optimizer_load = kwargs['optimizer_state_dict']
-    start_load = kwargs['start']
-    total_steps_load = kwargs['total_steps']
-    memory_load = kwargs['memory_savestate']
-
-    if os.path.exists(path + '/' + name + '.pth'):
-        print('Save File Found!')
-        checkpoint = torch.load(path + '/' + name + '.pth')
-
-        policy_net_load.load_state_dict(checkpoint['policy_state_dict'])
-        online_net_load.load_state_dict(checkpoint['online_state_dict'])
-        start_load = checkpoint['start'] + 1
-        optimizer_load.load_state_dict(checkpoint['optimizer_state_dict'])
-        total_steps_load = checkpoint['total_steps']
-        memory_load = checkpoint['memory_savestate']
-    else:
-        print('No Save File Found. Beginn new training')
-
-    return start_load, total_steps_load, memory_load
-
-
-# A function to save a model
-def save_model_dict(path, name, **kwargs):
-    policy_net_save = kwargs['policy_state_dict']
-    online_net_save = kwargs['online_state_dict']
-    optimizer_save = kwargs['optimizer_state_dict']
-    start_save = kwargs['start']
-    total_steps_save = kwargs['total_steps']
-    memory_save = kwargs['memory_savestate']
-
-    torch.save({
-        'policy_state_dict': policy_net_save.state_dict(),
-        'online_state_dict': online_net_save.state_dict(),
-        'optimizer_state_dict': optimizer_save.state_dict(),
-        'start': start_save,
-        'total_steps': total_steps_save,
-        'memory_savestate': memory_save,
-    }, path + '/' + name + '.pth')
+from Replay_Memory import ReplayMemory
 
 
 # A function to create and preprocess the Environment
@@ -65,49 +20,15 @@ def environment_maker(game):
     return env
 
 
-# Learning function that updates the policy network
-def Agent_learning(batch_size, gamma, **kwargs):
-    memory_l = kwargs['memory']
-    agent_l = kwargs['agent']
-    online_l = kwargs['online_network']
-    optimizer_l = kwargs['optimizer']
-    loss_func_l = kwargs['loss_function']
-
-    if len(memory_l) < 1000:
-        return
-    sample_memory = memory_l.sample(batch_size)
-    sample_memory_preprocessed = Memory(*zip(*sample_memory))
-
-    # Get each field of the memory sample
-    sample_actions = torch.tensor(sample_memory_preprocessed.action, dtype=torch.int64).unsqueeze(-1)
-    sample_rewards = torch.tensor(sample_memory_preprocessed.reward, dtype=torch.float32)
-    sample_dones = torch.tensor(sample_memory_preprocessed.done, dtype=torch.float32)
-    sample_states = torch.stack(sample_memory_preprocessed.state)
-    sample_next_states = torch.tensor(np.array(sample_memory_preprocessed.next_state), dtype=torch.float32).unsqueeze(1)
-
-    # compute the target & q values
-    max_q_values_online, _ = torch.max(online_l(sample_next_states), dim=1)
-    target = sample_rewards + gamma * max_q_values_online * (1 - sample_dones)
-
-    q_values = agent_l.policy_net(sample_states)
-    actions_q_values = torch.gather(q_values, dim=1, index=sample_actions)
-
-    # compute loss and backpropagate
-    loss = loss_func_l(target.unsqueeze(1), actions_q_values)
-    optimizer_l.zero_grad()
-    loss.backward()
-    optimizer_l.step()
-
-
-# Hyperparameters
+# Hyperparameters for the agent
 agent_hyperparameters = [hyperparameters['initial_eps'], hyperparameters['final_eps'],
                          hyperparameters['eps_decay_steps']]
 
 # Create the environment
-env = environment_maker('ALE/Pong-v5')
+env = environment_maker('ALE/Breakout-v5')
 
 # Create the meta data
-name = 'Pong'
+name = 'Breakout'
 path_to_model_save = '/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts'
 
 # Create the Agent and the online Network
@@ -129,7 +50,6 @@ if 'start' not in locals():
 
 if 'total_steps' not in locals():
     total_steps = 0
-
 
 start, total_steps, memory = load_model_dict(path=path_to_model_save, name=name, policy_state_dict=agent.policy_net,
                                              online_state_dict=online_net, optimizer_state_dict=optimizer, start=start,
