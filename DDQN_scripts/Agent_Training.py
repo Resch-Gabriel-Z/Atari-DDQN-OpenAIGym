@@ -1,4 +1,3 @@
-import gym
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -6,19 +5,11 @@ from tqdm import tqdm
 
 from Agent import Agent
 from Agent_Learning import agent_learning
-from Atari_Preprocessing import AtariWrapper
+from Atari_Preprocessing import environment_maker
 from Hyperparameters import hyperparameters
-from Model_saving_loading import load_model_dict, save_model_dict
+from Model_saving_loading import load_model_dict, save_model_dict, save_final_model
 from Neural_Network import DQN
 from Replay_Memory import ReplayMemory
-
-
-# A function to create and preprocess the Environment
-def environment_maker(game):
-    env_base = gym.make(game)
-    env_wrapped = AtariWrapper(env_base)
-    return env_wrapped
-
 
 # Hyperparameters for the agent
 agent_hyperparameters = [hyperparameters['initial_eps'], hyperparameters['final_eps'],
@@ -28,8 +19,8 @@ agent_hyperparameters = [hyperparameters['initial_eps'], hyperparameters['final_
 env = environment_maker('ALE/Breakout-v5')
 
 # Create the meta data
-name = 'Breakout'
-path_to_model_save = '/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts'
+game_name = '-'
+path_to_model_save = '-'
 
 # Create the Agent and the online Network
 agent = Agent(*agent_hyperparameters, 1, env.action_space.n)
@@ -52,9 +43,10 @@ if 'total_steps' not in locals():
     total_steps = 0
 
 # Load the model
-start, total_steps, memory = load_model_dict(path=path_to_model_save, name=name, policy_state_dict=agent.policy_net,
-                                             online_state_dict=online_net, optimizer_state_dict=optimizer, start=start,
-                                             total_steps=total_steps, memory_savestate=memory)
+start, total_steps, memory = load_model_dict(path=path_to_model_save, name=game_name,
+                                             policy_state_dict=agent.policy_net, online_state_dict=online_net,
+                                             optimizer_state_dict=optimizer, start=start, total_steps=total_steps,
+                                             memory_savestate=memory)
 
 # Train the Agent for a number of episodes
 for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
@@ -87,7 +79,7 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
             online_net.load_state_dict(agent.policy_net.state_dict())
 
     # Save the Model
-    save_model_dict(path=path_to_model_save, name=name, policy_state_dict=agent.policy_net,
+    save_model_dict(path=path_to_model_save, name=game_name, policy_state_dict=agent.policy_net,
                     online_state_dict=online_net, optimizer_state_dict=optimizer, start=episode,
                     total_steps=total_steps, memory_savestate=memory)
 
@@ -101,3 +93,8 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
               f'info: {others}\n'
               f'memory size: {len(memory)}\n'
               f'{"~" * 40}')
+
+# After training, save the models parameters
+name_final_model = game_name + '_final'
+path_to_final_model = '-'
+save_final_model(name=name_final_model, path=path_to_final_model, policy_state_dict=agent.policy_net)

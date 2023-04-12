@@ -28,7 +28,7 @@ class Agent:
         if random.uniform(0, 1) < self.epsilon:
             action = env.action_space.sample()
         else:
-            action = torch.argmax(self.policy_net(state))
+            action = torch.argmax(self.policy_net(state)).item()
 
         # Execute the action in the environment and return important information
         new_state, reward, done, *others = env.step(action)

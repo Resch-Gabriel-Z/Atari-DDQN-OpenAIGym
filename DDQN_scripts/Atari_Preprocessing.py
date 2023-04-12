@@ -14,3 +14,10 @@ class AtariWrapper(gym.ObservationWrapper):
         observation = cv2.resize(observation, (84, 84), interpolation=cv2.INTER_AREA)
         observation = cv2.cvtColor(observation, cv2.COLOR_BGR2GRAY)
         return observation
+
+
+# A function to create and preprocess the Environment
+def environment_maker(game, render_mode='rgb_array'):
+    env_base = gym.make(game, render_mode=render_mode)
+    env_wrapped = AtariWrapper(env_base)
+    return env_wrapped

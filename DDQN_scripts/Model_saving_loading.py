@@ -50,4 +50,4 @@ def save_model_dict(path, name, **kwargs):
 # Saving a model after training is completed (only the policy state dict to load it into the Agent)
 def save_final_model(path, name, **kwargs):
     final_policy = kwargs['policy_state_dict']
-    torch.save({'policy_state_dict': final_policy.state_dict()}, path + '/' + name + '.pth')
+    torch.save({'policy_state_dict': final_policy.state_dict()}, path + '/' + name + '.pt')
