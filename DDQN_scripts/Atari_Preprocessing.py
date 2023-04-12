@@ -1,9 +1,10 @@
 import cv2
 import gym
 
+
 # Wrapper that takes an Atari game (or any other game with similar observation space) and makes it more suitable for
 # training
-class Atari_wrapper(gym.ObservationWrapper):
+class AtariWrapper(gym.ObservationWrapper):
     def __int__(self, env):
         super().__init__(env)
         self.observation_space = env.observation_space

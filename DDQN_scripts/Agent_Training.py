@@ -5,8 +5,8 @@ import torch.optim as optim
 from tqdm import tqdm
 
 from Agent import Agent
-from Agent_Learning import Agent_learning
-from Atari_Preprocessing import Atari_wrapper
+from Agent_Learning import agent_learning
+from Atari_Preprocessing import AtariWrapper
 from Hyperparameters import hyperparameters
 from Model_saving_loading import load_model_dict, save_model_dict
 from Neural_Network import DQN
@@ -16,8 +16,8 @@ from Replay_Memory import ReplayMemory
 # A function to create and preprocess the Environment
 def environment_maker(game):
     env_base = gym.make(game)
-    env = Atari_wrapper(env_base)
-    return env
+    env_wrapped = AtariWrapper(env_base)
+    return env_wrapped
 
 
 # Hyperparameters for the agent
@@ -75,7 +75,7 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
         state = new_state
 
         # Agent Learning
-        Agent_learning(hyperparameters['batch_size'], hyperparameters['gamma'], memory=memory, agent=agent,
+        agent_learning(hyperparameters['batch_size'], hyperparameters['gamma'], memory=memory, agent=agent,
                        online_network=online_net, loss_function=loss_function, optimizer=optimizer)
 
         # If a condition arises which makes playing further impossible (such as losing all lives) go to new episode

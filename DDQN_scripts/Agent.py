@@ -6,7 +6,7 @@ import torch
 from Neural_Network import DQN
 
 
-class Agent():
+class Agent:
     def __init__(self, initial_eps, final_eps, eps_decay_steps, in_channels, num_actions):
         super().__init__()
         # Initialize needed variables to let the Agent 'act' for themselves including the decision when to explore and

@@ -23,7 +23,7 @@ def load_model_dict(path, name, **kwargs):
         total_steps_load = checkpoint['total_steps']
         memory_load = checkpoint['memory_savestate']
     else:
-        print('No Save File Found. Beginn new training')
+        print('No Save File Found. Begin new training')
 
     return start_load, total_steps_load, memory_load
 

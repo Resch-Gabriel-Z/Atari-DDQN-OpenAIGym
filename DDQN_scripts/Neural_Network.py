@@ -5,7 +5,7 @@ import torch.nn as nn
 class DQN(nn.Module):
     def __init__(self, in_channels, num_actions):
         super(DQN, self).__init__()
-        # Define the convolutation layers as Mnih et al. 2015
+        # Define the convolution layers as Mnih et al. 2015
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels=32, kernel_size=8, stride=4),
             nn.ReLU(),

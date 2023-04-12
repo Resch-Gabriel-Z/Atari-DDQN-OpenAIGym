@@ -4,7 +4,7 @@ import torch
 from Replay_Memory import Memory
 
 
-def Agent_learning(batch_size, gamma, **kwargs):
+def agent_learning(batch_size, gamma, **kwargs):
     memory_l = kwargs['memory']
     agent_l = kwargs['agent']
     online_l = kwargs['online_network']
@@ -32,7 +32,7 @@ def Agent_learning(batch_size, gamma, **kwargs):
     q_values = agent_l.policy_net(sample_states)
     actions_q_values = torch.gather(q_values, dim=1, index=sample_actions)
 
-    # compute loss and backpropagate
+    # compute loss and perform backpropagation
     loss = loss_func_l(target.unsqueeze(1), actions_q_values)
     optimizer_l.zero_grad()
     loss.backward()
