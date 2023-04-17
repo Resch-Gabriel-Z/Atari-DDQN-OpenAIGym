@@ -1,4 +1,4 @@
-# Atari-DDQN-OpenAIGYM
+# Atari-DDQN-OpenAIGym
 
 An implementation of the Double Deep Q-Learning Network with methods, hyperparameters and 
 architecture presented in the Paper by van Hasselt et al. 2015 ([1](https://arxiv.org/abs/1509.06461))

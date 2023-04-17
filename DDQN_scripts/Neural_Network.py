@@ -3,9 +3,17 @@ import torch.nn as nn
 
 
 class DQN(nn.Module):
+    """
+    A CNN defined in the paper by Mnih et al. 2015
+    """
     def __init__(self, in_channels, num_actions):
+        """
+
+        Args:
+            in_channels: the dimension of the state we analyze the picture in
+            num_actions: the number of action our agent can do in the current state
+        """
         super(DQN, self).__init__()
-        # Define the convolution layers as Mnih et al. 2015
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels=32, kernel_size=8, stride=4),
             nn.ReLU(),
@@ -25,9 +33,15 @@ class DQN(nn.Module):
         )
 
     def forward(self, x):
-        # Making sure the input is a tensor as we desire
+        """
+        The normal forward function in a CNN. But first we make sure that the input is a tensor of the correct type.
+        Args:
+            x: the current state
+
+        Returns:
+            the action to peform in that state
+        """
         x = torch.as_tensor(x, dtype=torch.float32)
-        # Process
         conv_layers = self.conv(x)
         fc_input = self.flatten(conv_layers)
         fc_input = fc_input.view(-1, 64 * 7 * 7)

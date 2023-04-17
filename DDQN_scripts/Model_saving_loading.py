@@ -3,55 +3,74 @@ import os
 import torch
 
 
-def load_model_dict(path, name, **kwargs):
-    policy_net_load = kwargs['policy_state_dict']
-    online_net_load = kwargs['online_state_dict']
-    optimizer_load = kwargs['optimizer_state_dict']
-    start_load = kwargs['start']
-    total_steps_load = kwargs['total_steps']
-    memory_load = kwargs['memory_savestate']
-    episode_reward_tracker_load = kwargs['episode_reward_tracker']
+def load_model_dict(path, name, policy_net, online_net, optimizer, starting_point, episode_reward_tracker, total_steps,
+                    memory):
+    """
+    A Method that loads certain variables I decided to be valuable from a dictionary.
+    Args:
+        path: the path we look for the checkpoint
+        name: the name of the file
+        policy_net: the policy parameters
+        online_net: the online network parameters
+        optimizer: the optimizer parameters
+        starting_point: the starting point we want to learn on (in case we want to divide the training session)
+        episode_reward_tracker: the rewards over all episodes
+        total_steps: the total steps done so far
+        memory: the memory we have currently
 
-    # Basic function to look for a file and then loads it variables taken from a dict
-    if os.path.exists(path + '/' + name + '.pth'):
+    Returns:
+        some variables can be directly loaded from the directory, others have to be returned, these are the ones.
+
+    """
+    if os.path.exists(f'{path}/{name}.pt'):
         print('Save File Found!')
-        checkpoint = torch.load(path + '/' + name + '.pth')
+        checkpoint = torch.load(f'{path}/{name}.pt')
 
-        policy_net_load.load_state_dict(checkpoint['policy_state_dict'])
-        online_net_load.load_state_dict(checkpoint['online_state_dict'])
-        start_load = checkpoint['start'] + 1
-        optimizer_load.load_state_dict(checkpoint['optimizer_state_dict'])
-        total_steps_load = checkpoint['total_steps']
-        memory_load = checkpoint['memory_savestate']
-        episode_reward_tracker_load = checkpoint['episode_reward_tracker']
+        policy_net.load_state_dict(checkpoint['policy_state_dict'])
+        online_net.load_state_dict(checkpoint['online_state_dict'])
+        starting_point = checkpoint['start'] + 1
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        total_steps = checkpoint['total_steps']
+        memory = checkpoint['memory_savestate']
+        episode_reward_tracker = checkpoint['episode_reward_tracker']
     else:
         print('No Save File Found. Begin new training')
 
-    return start_load, total_steps_load, memory_load, episode_reward_tracker_load
+    return starting_point, episode_reward_tracker, total_steps, memory
 
 
-def save_model_dict(path, name, **kwargs):
-    policy_net_save = kwargs['policy_state_dict']
-    online_net_save = kwargs['online_state_dict']
-    optimizer_save = kwargs['optimizer_state_dict']
-    start_save = kwargs['start']
-    total_steps_save = kwargs['total_steps']
-    memory_save = kwargs['memory_savestate']
-    episode_reward_tracker_save = kwargs['episode_reward_tracker']
-
-    # Basic torch function that saves variables as a dict to load them afterward
+def save_model_dict(path, name, policy_net, online_net, optimizer, starting_point, episode_reward_tracker, total_steps,
+                    memory):
+    """
+    A simple method to save the model after an episode
+    Args:
+        path: the path we will save the checkpoint in
+        name: the name of the file
+        policy_net: the policy parameters
+        online_net: the online network parameters
+        optimizer: the optimizer parameters
+        starting_point: the starting point we want to learn on (in case we want to divide the training session)
+        episode_reward_tracker: the rewards over all episodes
+        total_steps: the total steps done so far
+        memory: the memory we have currently
+    """
     torch.save({
-        'policy_state_dict': policy_net_save.state_dict(),
-        'online_state_dict': online_net_save.state_dict(),
-        'optimizer_state_dict': optimizer_save.state_dict(),
-        'start': start_save,
-        'total_steps': total_steps_save,
-        'memory_savestate': memory_save,
-        'episode_reward_tracker': episode_reward_tracker_save,
-    }, path + '/' + name + '.pth')
+        'policy_state_dict': policy_net.state_dict(),
+        'online_state_dict': online_net.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'start': starting_point,
+        'total_steps': total_steps,
+        'memory_savestate': memory,
+        'episode_reward_tracker': episode_reward_tracker,
+    }, f'{path}/{name}.pt')
 
 
-# Saving a model after training is completed (only the policy state dict to load it into the Agent)
-def save_final_model(path, name, **kwargs):
-    final_policy = kwargs['policy_state_dict']
-    torch.save({'policy_state_dict': final_policy.state_dict()}, path + '/' + name + '.pt')
+def save_final_model(path, name, model):
+    """
+    A simple method to save the parameters after we trained the model
+    Args:
+        path: the path to save the final model
+        name: the name of the final model.
+        model: the model itself
+    """
+    torch.save(model.state_dict(), f'{path}/{name}.pt')
