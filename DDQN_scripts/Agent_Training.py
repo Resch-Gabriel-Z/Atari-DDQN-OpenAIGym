@@ -12,6 +12,10 @@ from Model_saving_loading import load_model_dict, save_model_dict, save_final_mo
 from Neural_Network import DQN
 from Replay_Memory import ReplayMemory
 
+# get device
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+print(device, torch.cuda.get_device_name(device))
+
 # Hyperparameters for the agent
 agent_hyperparameters = [hyperparameters['initial_eps'], hyperparameters['final_eps'],
                          hyperparameters['eps_decay_steps']]
@@ -24,8 +28,8 @@ game_name = '-'
 path_to_model_save = '-'
 
 # Create the Agent and the online Network
-agent = Agent(*agent_hyperparameters, 1, env.action_space.n)
-online_net = DQN(1, env.action_space.n)
+agent = Agent(*agent_hyperparameters, 1, env.action_space.n).to_device(device)
+online_net = DQN(1, env.action_space.n).to_device(device)
 
 # Initialize the weights of the online net with the policy nets weights
 online_net.load_state_dict(agent.policy_net.state_dict())
@@ -57,7 +61,7 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
 
     # Then for each step, follow the Pseudocode in the paper
     for step in range(hyperparameters['max_steps_per_episode']):
-        state = torch.as_tensor(state).unsqueeze(0)
+        state = torch.as_tensor(state).unsqueeze(0).to_device(device)
         action, new_state, reward, done, *others = agent.act(state, env)
         total_steps += 1
         agent.exploration_decay(total_steps=total_steps)
@@ -73,7 +77,7 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
 
         # Agent Learning
         agent_learning(hyperparameters['batch_size'], hyperparameters['gamma'], memory=memory, agent=agent,
-                       online_net=online_net, loss_function=loss_function, optimizer=optimizer)
+                       online_net=online_net, loss_function=loss_function, optimizer=optimizer, device=device)
 
         # If a condition arises which makes playing further impossible (such as losing all lives) go to new episode
         if done:
