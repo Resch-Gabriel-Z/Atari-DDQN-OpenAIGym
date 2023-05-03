@@ -28,11 +28,11 @@ env = environment_maker('ALE/Pong-v5')
 
 # Create the meta data
 game_name = 'Pong'
-path_to_model_save = '/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts'
+path_to_model_save = '-'
 
 # Create the Agent and the online Network
-agent = Agent(*agent_hyperparameters, 1, env.action_space.n).to_device(device)
-online_net = DQN(1, env.action_space.n).to_device(device)
+agent = Agent(*agent_hyperparameters, 1, env.action_space.n).to(device=device)
+online_net = DQN(1, env.action_space.n).to(device=device)
 
 # Initialize the weights of the online net with the policy nets weights
 online_net.load_state_dict(agent.policy_net.state_dict())
@@ -64,7 +64,7 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
 
     # Then for each step, follow the Pseudocode in the paper
     for step in range(hyperparameters['max_steps_per_episode']):
-        state = torch.as_tensor(state).unsqueeze(0).to_device(device)
+        state = torch.as_tensor(state).unsqueeze(0).to(device=device)
         action, new_state, reward, done, *others = agent.act(state, env)
         total_steps += 1
         agent.exploration_decay(total_steps=total_steps)
@@ -94,7 +94,7 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
     episode_reward_tracker.append(reward_for_episode)
 
     # Save the Model
-    if episode % (hyperparameters['number_of_episodes'] / 10000):
+    if episode % (hyperparameters['number_of_episodes'] / NUMBER_OF_CHECKPOINTS) == 0:
         save_model_dict(path=path_to_model_save, name=game_name, policy_net=agent.policy_net, online_net=online_net,
                         optimizer=optimizer, starting_point=episode, total_steps=total_steps, memory=memory,
                         episode_reward_tracker=episode_reward_tracker)
@@ -111,7 +111,8 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
 
 # After training, save the models parameters
 name_final_model = game_name + '_final'
-path_to_final_model = '/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_final_save'
+path_to_final_model = '-'
+path_to_media = '-'
 save_final_model(name=name_final_model, path=path_to_final_model, model=agent.policy_net)
 df = pd.DataFrame({'cumulative rewards': episode_reward_tracker})
-df.to_csv(f'/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/media/{game_name}.csv')
+df.to_csv(f'{path_to_media}{game_name}.csv')

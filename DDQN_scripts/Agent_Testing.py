@@ -5,16 +5,16 @@ import torch
 from Agent import Agent
 from Atari_Preprocessing import environment_maker
 
-env = environment_maker('ALE/Breakout-v5', render_mode='human')
+env = environment_maker('ALE/Pong-v5', render_mode='human')
 
 path = '-'
-name = '-' + '_final.pt'
+name = 'Pong' + '_final.pt'
 
 # Load the final model
 if os.path.exists(path + '/' + name):
     agent = Agent(0.1, 0.1, 0, 1, env.action_space.n)
     agent.policy_net.load_state_dict(
-        torch.load(path + '/' + name)['policy_state_dict'])
+        torch.load(f'{path}/{name}'))
     agent.policy_net.eval()
 
     # Test the final model
