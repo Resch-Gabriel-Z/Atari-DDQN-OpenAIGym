@@ -12,6 +12,9 @@ from Model_saving_loading import load_model_dict, save_model_dict, save_final_mo
 from Neural_Network import DQN
 from Replay_Memory import ReplayMemory
 
+NUMBER_OF_MESSAGES = 1000
+NUMBER_OF_CHECKPOINTS = 100
+
 # get device
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(device, torch.cuda.get_device_name(device))
@@ -21,11 +24,11 @@ agent_hyperparameters = [hyperparameters['initial_eps'], hyperparameters['final_
                          hyperparameters['eps_decay_steps']]
 
 # Create the environment
-env = environment_maker('-')
+env = environment_maker('ALE/Pong-v5')
 
 # Create the meta data
-game_name = '-'
-path_to_model_save = '-'
+game_name = 'Pong'
+path_to_model_save = '/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_dicts'
 
 # Create the Agent and the online Network
 agent = Agent(*agent_hyperparameters, 1, env.action_space.n).to_device(device)
@@ -91,12 +94,13 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
     episode_reward_tracker.append(reward_for_episode)
 
     # Save the Model
-    save_model_dict(path=path_to_model_save, name=game_name, policy_net=agent.policy_net, online_net=online_net,
-                    optimizer=optimizer, starting_point=episode, total_steps=total_steps, memory=memory,
-                    episode_reward_tracker=episode_reward_tracker)
+    if episode % (hyperparameters['number_of_episodes'] / 10000):
+        save_model_dict(path=path_to_model_save, name=game_name, policy_net=agent.policy_net, online_net=online_net,
+                        optimizer=optimizer, starting_point=episode, total_steps=total_steps, memory=memory,
+                        episode_reward_tracker=episode_reward_tracker)
 
     # Print out useful information during Training
-    if episode % (hyperparameters['number_of_episodes'] / 10000) == 0:
+    if episode % (hyperparameters['number_of_episodes'] / NUMBER_OF_MESSAGES) == 0:
         print(f'\n'
               f'{"~" * 40}\n'
               f'Episode: {episode + 1}\n'
@@ -107,7 +111,7 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
 
 # After training, save the models parameters
 name_final_model = game_name + '_final'
-path_to_final_model = '-'
+path_to_final_model = '/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/DDQN_model_final_save'
 save_final_model(name=name_final_model, path=path_to_final_model, model=agent.policy_net)
 df = pd.DataFrame({'cumulative rewards': episode_reward_tracker})
-df.to_csv('-')
+df.to_csv(f'/home/gabe/PycharmProjects/Atari-DDQN-OpenAIGym/media/{game_name}.csv')
