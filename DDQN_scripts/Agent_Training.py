@@ -24,11 +24,13 @@ agent_hyperparameters = [hyperparameters['initial_eps'], hyperparameters['final_
                          hyperparameters['eps_decay_steps']]
 
 # Create the environment
-env = environment_maker('ALE/Pong-v5')
+env = environment_maker('-')
 
 # Create the meta data
-game_name = 'Pong'
+game_name = '-'
 path_to_model_save = '-'
+path_to_final_model = '-'
+path_to_media = '-'
 
 # Create the Agent and the online Network
 agent = Agent(*agent_hyperparameters, 1, env.action_space.n).to(device=device)
@@ -111,8 +113,6 @@ for episode in tqdm(range(start, hyperparameters['number_of_episodes'])):
 
 # After training, save the models parameters
 name_final_model = game_name + '_final'
-path_to_final_model = '-'
-path_to_media = '-'
 save_final_model(name=name_final_model, path=path_to_final_model, model=agent.policy_net)
 df = pd.DataFrame({'cumulative rewards': episode_reward_tracker})
 df.to_csv(f'{path_to_media}{game_name}.csv')
